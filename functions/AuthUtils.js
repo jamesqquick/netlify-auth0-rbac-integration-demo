@@ -128,7 +128,7 @@ const getCallbackParams = (openIDClient, event) => {
 };
 
 const generateAuth0LogoutUrl = () => {
-    const auth0DomainLogout = `https://${process.env.AUTH0_DOMAIN}v2/logout`;
+    const auth0DomainLogout = `https://${process.env.AUTH0_DOMAIN}/v2/logout`;
     const urlReturnTo = `returnTo=${encodeURIComponent(
         process.env.APP_DOMAIN
     )}`;
