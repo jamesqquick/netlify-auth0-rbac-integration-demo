@@ -34,7 +34,7 @@ const generateNetlifyJWT = async (tokenData) => {
     };
     const netlifyJWT = await jwt.sign(
         netlifyTokenData,
-        process.env.TOKEN_SECRET
+        process.env.TOKEN_SECRET //TODO: can i access netlify jwt secret in here?
     );
     return netlifyJWT;
 };
@@ -47,17 +47,17 @@ const generateAuth0LoginCookie = (nonce, encodedStateStr) => {
         'auth0_login_cookie',
         JSON.stringify(cookieData),
         {
-            secure: process.env.COOKIES_SECURE === 'true',
+            secure: process.env.COOKIES_SECURE === 'true', //TODO: use NODE_ENV
             path: '/',
             maxAge: tenMinutes,
             httpOnly: true,
         }
     );
-    console.log(loginCookie);
     return loginCookie;
 };
 
 const generateEncodedStateString = (route) => {
+    //TODO: fallback to default logged in route
     const state = { route, nonce: generators.nonce() };
     //convert the state object to a base64 string
     const stateBuffer = Buffer.from(JSON.stringify(state));
@@ -116,12 +116,10 @@ const generateNetlifyCookieFromAuth0Token = async (tokenData) => {
 };
 
 const getCallbackParams = (openIDClient, event) => {
-    //TODO: does mocking out this request object make sense?
-
     const req = {
-        method: 'POST',
+        method: 'POST', //TODO: does it need this?
         body: event.body,
-        url: event.headers.host,
+        url: event.headers.host, //TODO: does it need this?
     };
     const params = openIDClient.callbackParams(req);
     return params;
@@ -155,7 +153,7 @@ const handleLogin = async (event) => {
             'Cache-Control': 'no-cache',
             'Set-Cookie': loginCookie,
         },
-        body: '',
+        body: '', //TODO: can we send nothing
     };
 };
 
@@ -174,6 +172,7 @@ const handleCallback = async (event) => {
         event.headers.cookie
     );
     const { nonce, state } = JSON.parse(loginCookie);
+    //TODO: use the state.route to redirect the user
 
     const params = getCallbackParams(openIDClient, event);
 
@@ -195,20 +194,18 @@ const handleCallback = async (event) => {
     return {
         statusCode: 302,
         headers: {
-            Location: `/`,
+            Location: `/`, //TODO: use what was in the state
             'Cache-Control': 'no-cache',
         },
         multiValueHeaders: {
             'Set-Cookie': [netlifyCookie, auth0LoginCookie],
         },
-        body: JSON.stringify({ msg: `Login handled correctly` }),
     };
 };
 
 const handleLogout = async (event) => {
     const logoutCookie = generateLogoutCookie();
     const logoutUrl = generateAuth0LogoutUrl();
-    console.log(logoutUrl);
     return {
         statusCode: 302,
         headers: {
@@ -216,7 +213,6 @@ const handleLogout = async (event) => {
             'Cache-Control': 'no-cache',
             'Set-Cookie': logoutCookie,
         },
-        body: JSON.stringify({ msg: `Logout successful` }),
     };
 };
 

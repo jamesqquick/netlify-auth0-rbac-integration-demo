@@ -17,7 +17,7 @@ const createSecretLink = () => {
 
 if (document.cookie.includes('nf_jwt')) {
     createAuthButton('logout');
-    createSecretLink();
+    //createSecretLink();
 } else {
     createAuthButton('login');
 }
