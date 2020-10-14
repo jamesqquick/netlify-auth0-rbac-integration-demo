@@ -1,0 +1,36 @@
+{
+    "name": "auth0-netlify-integration",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "cookie": "^0.4.1",
+        "dotenv": "^8.2.0",
+        "jsonwebtoken": "^8.5.1",
+        "openid-client": "^4.1.1",
+        "parcel-bundler": "^1.12.4",
+        "postcss-modules": "^3.2.2",
+        "querystring": "^0.2.0",
+        "tailwindcss": "^1.9.1"
+    },
+    "scripts": {
+        "start": "echo 'dummy'"
+    },
+    "eslintConfig": {
+        "extends": "react-app"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "prettier": "^2.0.5"
+    }
+}
