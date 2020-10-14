@@ -47,12 +47,13 @@ const generateAuth0LoginCookie = (nonce, encodedStateStr) => {
         'auth0_login_cookie',
         JSON.stringify(cookieData),
         {
-            secure: true,
+            secure: process.env.COOKIES_SECURE === 'true',
             path: '/',
             maxAge: tenMinutes,
             httpOnly: true,
         }
     );
+    console.log(loginCookie);
     return loginCookie;
 };
 
@@ -83,7 +84,7 @@ const generateAuth0LoginCookieReset = () => {
         'auth0_login_cookie',
         'Auth0 Login Cookie Reset',
         {
-            secure: true,
+            secure: process.env.COOKIES_SECURE === 'true',
             httpOnly: true,
             path: '/',
             maxAge: new Date(0),
@@ -94,10 +95,10 @@ const generateAuth0LoginCookieReset = () => {
 
 const generateLogoutCookie = () => {
     const logoutCookie = cookie.serialize('nf_jwt', 'Logout Cookie', {
-        secure: true,
-        httpOnly: true,
+        secure: process.env.COOKIES_SECURE === 'true',
         path: '/',
         maxAge: new Date(0),
+        httpOnly: true,
     });
     return logoutCookie;
 };
@@ -107,8 +108,7 @@ const generateNetlifyCookieFromAuth0Token = async (tokenData) => {
 
     const twoWeeks = 14 * 24 * 3600000;
     const netlifyCookie = cookie.serialize('nf_jwt', netlifyToken, {
-        secure: true,
-        httpOnly: true,
+        secure: process.env.COOKIES_SECURE === 'true',
         path: '/',
         maxAge: twoWeeks,
     });
@@ -164,7 +164,6 @@ const handleCallback = async (event) => {
     if (!event) {
         throw new Error('Event is not available');
     }
-
     if (!event.headers.cookie) {
         throw new Error(
             'No login cookie present for tracking nonce and state.'
@@ -209,6 +208,7 @@ const handleCallback = async (event) => {
 const handleLogout = async (event) => {
     const logoutCookie = generateLogoutCookie();
     const logoutUrl = generateAuth0LogoutUrl();
+    console.log(logoutUrl);
     return {
         statusCode: 302,
         headers: {
