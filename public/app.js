@@ -1,5 +1,4 @@
 const authButtons = document.getElementById('authButtons');
-console.log(document.cookie);
 
 const createAuthButton = (type) => {
     const loginButton = document.createElement('a');
@@ -17,7 +16,7 @@ const createSecretLink = () => {
 
 if (document.cookie.includes('nf_jwt')) {
     createAuthButton('logout');
-    //createSecretLink();
+    createSecretLink();
 } else {
     createAuthButton('login');
 }

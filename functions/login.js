@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { handleLogin } = require('./AuthUtils');
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
     try {
         return await handleLogin(event);
     } catch (error) {
