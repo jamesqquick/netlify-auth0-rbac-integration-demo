@@ -9,7 +9,7 @@ const createAuthButton = (type) => {
 
 const createSecretLink = () => {
     const secretButton = document.createElement('a');
-    secretButton.href = `/admin/secret`;
+    secretButton.href = `/secret`;
     secretButton.innerText = 'View the Secret Stuff!';
     authButtons.append(secretButton);
 };

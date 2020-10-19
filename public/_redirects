@@ -1,2 +1,2 @@
-/admin/* 200 Role=admin
-/admin/* /.netlify/functions/login 401!
+/secret/* 200 Role=admin
+/secret/* /.netlify/functions/login 401!
