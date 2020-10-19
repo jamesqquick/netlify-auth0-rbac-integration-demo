@@ -1,0 +1,52 @@
+:root {
+    --blue: #1071f2;
+    --gray: #333;
+}
+body {
+    font-family: 'inter', sans-serif;
+    color: var(--gray);
+    margin: 0;
+}
+.container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    padding-top: 30vh;
+    box-sizing: border-box;
+}
+
+.title {
+    margin-bottom: 0px;
+}
+
+.subtitle {
+    margin-bottom: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: var(--blue);
+    color: white;
+    text-decoration: none;
+}
+
+.auth-btn {
+    text-decoration: none;
+    color: var(--blue);
+    font-weight: bold;
+    border-bottom: 2px solid transparent;
+}
+
+.auth-btn:hover {
+    border-bottom: 2px solid var(--blue);
+}
+
+.hidden {
+    display: none;
+}
+
+nav {
+    display: flex;
+    justify-content: flex-end;
+}
