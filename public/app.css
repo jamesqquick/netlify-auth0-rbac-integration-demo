@@ -31,14 +31,14 @@ body {
     text-decoration: none;
 }
 
-.auth-btn {
+.nav-link {
     text-decoration: none;
     color: var(--blue);
     font-weight: bold;
     border-bottom: 2px solid transparent;
 }
 
-.auth-btn:hover {
+.nav-link:hover {
     border-bottom: 2px solid var(--blue);
 }
 
