@@ -36,6 +36,7 @@ body {
     color: var(--blue);
     font-weight: bold;
     border-bottom: 2px solid transparent;
+    margin-left: 20px;
 }
 
 .nav-link:hover {
