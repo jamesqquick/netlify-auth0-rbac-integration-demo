@@ -50,3 +50,16 @@ nav {
     display: flex;
     justify-content: flex-end;
 }
+
+.blue-container {
+    background-color: var(--blue);
+    border-radius: 5px;
+    box-shadow: 3px 3px 10px #333;
+    color: white;
+    padding: 1rem 2rem;
+    margin: 40px 0;
+    overflow-wrap: anywhere;
+}
+.blue-container > * {
+    margin: 0;
+}
