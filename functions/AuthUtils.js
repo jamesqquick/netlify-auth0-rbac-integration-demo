@@ -5,12 +5,11 @@ const cookie = require('cookie');
 
 const getOpenIDClient = async () => {
     const issuer = await Issuer.discover(`https://${process.env.AUTH0_DOMAIN}`);
-    const openIDClient = new issuer.Client({
+    return new issuer.Client({
         client_id: process.env.AUTH0_CLIENT_ID,
         redirect_uris: [`${process.env.URL}/.netlify/functions/callback`],
         response_types: ['id_token'],
     });
-    return openIDClient;
 };
 
 const generateNetlifyJWT = async (tokenData) => {
@@ -31,72 +30,52 @@ const generateNetlifyJWT = async (tokenData) => {
             },
         },
     };
-    const netlifyJWT = await jwt.sign(
-        netlifyTokenData,
-        process.env.TOKEN_SECRET
-    );
-    return netlifyJWT;
+    return await jwt.sign(netlifyTokenData, process.env.TOKEN_SECRET);
 };
 
 const generateAuth0LoginCookie = (nonce, encodedStateStr) => {
     const cookieData = { nonce, state: encodedStateStr };
-    const tenMinutes = 10 * 60 * 1000;
-
-    const loginCookie = cookie.serialize(
-        'auth0_login_cookie',
-        JSON.stringify(cookieData),
-        {
-            secure: !process.env.NETLIFY_DEV === 'true',
-            path: '/',
-            maxAge: tenMinutes,
-            httpOnly: true,
-        }
-    );
-    return loginCookie;
+    return cookie.serialize('auth0_login_cookie', JSON.stringify(cookieData), {
+        secure: !process.env.NETLIFY_DEV === 'true',
+        path: '/',
+        maxAge: 30 * 60 * 1000,
+        httpOnly: true,
+    });
 };
 
 const generateEncodedStateString = (route) => {
     const state = { route: route || '/', nonce: generators.nonce() };
-    //convert the state object to a base64 string
     const stateBuffer = Buffer.from(JSON.stringify(state));
-    const encodedStateStr = stateBuffer.toString('base64');
-    return encodedStateStr;
+    return stateBuffer.toString('base64');
 };
 
 const generateAuth0LoginResetCookie = () => {
-    const auth0LoginCookieReset = cookie.serialize(
-        'auth0_login_cookie',
-        'Auth0 Login Cookie Reset',
-        {
-            secure: !process.env.NETLIFY_DEV === 'true',
-            httpOnly: true,
-            path: '/',
-            maxAge: new Date(0),
-        }
-    );
-    return auth0LoginCookieReset;
+    return cookie.serialize('auth0_login_cookie', 'Auth0 Login Cookie Reset', {
+        secure: !process.env.NETLIFY_DEV === 'true',
+        httpOnly: true,
+        path: '/',
+        maxAge: new Date(0),
+    });
 };
 
 const generateLogoutCookie = () => {
-    const logoutCookie = cookie.serialize('nf_jwt', 'Logout Cookie', {
+    return cookie.serialize('nf_jwt', 'Logout Cookie', {
         secure: !process.env.NETLIFY_DEV === 'true',
         path: '/',
         maxAge: new Date(0),
         httpOnly: true,
     });
-    return logoutCookie;
 };
 
 const generateNetlifyCookieFromAuth0Token = async (tokenData) => {
     const netlifyToken = await generateNetlifyJWT(tokenData);
 
     const twoWeeks = 14 * 24 * 3600000;
-    const netlifyCookie = cookie.serialize('nf_jwt', netlifyToken, {
+    return cookie.serialize('nf_jwt', netlifyToken, {
         secure: !process.env.NETLIFY_DEV === 'true',
         path: '/',
         maxAge: twoWeeks,
     });
-    return netlifyCookie;
 };
 
 const getCallbackParams = (openIDClient, event) => {
@@ -108,16 +87,14 @@ const getCallbackParams = (openIDClient, event) => {
         url: event.headers.host,
     };
     //callbackParams documentation - https://github.com/panva/node-openid-client/tree/master/docs#clientcallbackparamsinput
-    const params = openIDClient.callbackParams(req);
-    return params;
+    return openIDClient.callbackParams(req);
 };
 
 const generateAuth0LogoutUrl = () => {
     const auth0DomainLogout = `https://${process.env.AUTH0_DOMAIN}/v2/logout`;
     const urlReturnTo = `returnTo=${encodeURIComponent(process.env.URL)}`;
     const urlClientId = `client_id=${process.env.AUTH0_CLIENT_ID}`;
-    const logoutUrl = `${auth0DomainLogout}?${urlReturnTo}&${urlClientId}`;
-    return logoutUrl;
+    return `${auth0DomainLogout}?${urlReturnTo}&${urlClientId}`;
 };
 
 const handleLogin = async (event) => {
@@ -136,13 +113,12 @@ const handleLogin = async (event) => {
         nonce,
         state: encodedStateStr,
     });
-    const loginCookie = generateAuth0LoginCookie(nonce, encodedStateStr);
     return {
         statusCode: 302,
         headers: {
             Location: authRedirectURL,
             'Cache-Control': 'no-cache',
-            'Set-Cookie': loginCookie,
+            'Set-Cookie': generateAuth0LoginCookie(nonce, encodedStateStr),
         },
     };
 };
