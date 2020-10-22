@@ -18,6 +18,7 @@ const generateNetlifyJWT = async (tokenData) => {
     const twoWeeksInSeconds = 14 * 24 * 3600;
     const exp = Math.floor(iat + twoWeeksInSeconds);
     //copy over appropriate properties from the original token data
+    //Refer to Netlify Documentation for token formatting - https://docs.netlify.com/visitor-access/role-based-access-control/#external-providers
     const netlifyTokenData = {
         exp,
         iat,
@@ -62,21 +63,7 @@ const generateEncodedStateString = (route) => {
     return encodedStateStr;
 };
 
-const generateAuthRedirectURL = async (
-    openIDClient,
-    nonce,
-    encodedStateStr
-) => {
-    const authorizationUrl = openIDClient.authorizationUrl({
-        scope: 'openid email profile',
-        response_mode: 'form_post',
-        nonce,
-        state: encodedStateStr,
-    });
-    return authorizationUrl;
-};
-
-const generateAuth0LoginCookieReset = () => {
+const generateAuth0LoginResetCookie = () => {
     const auth0LoginCookieReset = cookie.serialize(
         'auth0_login_cookie',
         'Auth0 Login Cookie Reset',
@@ -120,6 +107,7 @@ const getCallbackParams = (openIDClient, event) => {
         body: event.body,
         url: event.headers.host,
     };
+    //callbackParams documentation - https://github.com/panva/node-openid-client/tree/master/docs#clientcallbackparamsinput
     const params = openIDClient.callbackParams(req);
     return params;
 };
@@ -140,11 +128,14 @@ const handleLogin = async (event) => {
     const referer = event.headers.referer;
     const encodedStateStr = generateEncodedStateString(referer);
     const nonce = generators.nonce();
-    const authRedirectURL = await generateAuthRedirectURL(
-        openIDClient,
+
+    //authorizationUrl docs - https://github.com/panva/node-openid-client/tree/master/docs#clientauthorizationurlparameters
+    const authRedirectURL = openIDClient.authorizationUrl({
+        scope: 'openid email profile',
+        response_mode: 'form_post',
         nonce,
-        encodedStateStr
-    );
+        state: encodedStateStr,
+    });
     const loginCookie = generateAuth0LoginCookie(nonce, encodedStateStr);
     return {
         statusCode: 302,
@@ -157,16 +148,10 @@ const handleLogin = async (event) => {
 };
 
 const handleCallback = async (event) => {
-    if (!event || !event.headers) {
-        throw new Error('Malformed event');
+    if (!event || !event.headers || !event.headers.cookie) {
+        throw new Error('Invalid request');
     }
     const openIDClient = await getOpenIDClient();
-
-    if (!event.headers.cookie) {
-        throw new Error(
-            'No login cookie present for tracking nonce and state.'
-        );
-    }
 
     const { auth0_login_cookie: loginCookie } = cookie.parse(
         event.headers.cookie
@@ -175,6 +160,7 @@ const handleCallback = async (event) => {
 
     const params = getCallbackParams(openIDClient, event);
 
+    //callback docs - https://github.com/panva/node-openid-client/tree/master/docs#clientcallbackredirecturi-parameters-checks-extras
     const tokenSet = await openIDClient.callback(
         `${process.env.URL}/.netlify/functions/callback`,
         params,
@@ -189,11 +175,11 @@ const handleCallback = async (event) => {
         decodedToken
     );
 
-    const auth0LoginCookie = generateAuth0LoginCookieReset();
+    const auth0LoginCookie = generateAuth0LoginResetCookie();
 
     //Get the redirect URL from the decoded state
-    let buff = Buffer.from(state, 'base64');
-    const decodedState = JSON.parse(buff.toString('ascii'));
+    const buff = Buffer.from(state, 'base64');
+    const decodedState = JSON.parse(buff.toString('utf8'));
     return {
         statusCode: 302,
         headers: {
@@ -206,18 +192,13 @@ const handleCallback = async (event) => {
     };
 };
 
-const handleLogout = async (event) => {
-    if (!event || !event.headers) {
-        throw new Error('Malformed event');
-    }
-    const logoutCookie = generateLogoutCookie();
-    const logoutUrl = generateAuth0LogoutUrl();
+const handleLogout = async () => {
     return {
         statusCode: 302,
         headers: {
-            Location: logoutUrl,
+            Location: generateAuth0LogoutUrl(),
             'Cache-Control': 'no-cache',
-            'Set-Cookie': logoutCookie,
+            'Set-Cookie': generateLogoutCookie(),
         },
     };
 };
