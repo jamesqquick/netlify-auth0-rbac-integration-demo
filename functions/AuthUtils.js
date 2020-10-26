@@ -60,20 +60,16 @@ const generateEncodedStateString = (route) => {
 };
 
 const generateAuth0LoginResetCookie = () => {
-    return cookie.serialize(
-        AUTH0_LOGIN_COOKIE_NAME,
-        'Auth0 Login Cookie Reset',
-        {
-            secure: !isRunningLocally,
-            httpOnly: true,
-            path: '/',
-            maxAge: new Date(0),
-        }
-    );
+    return cookie.serialize(AUTH0_LOGIN_COOKIE_NAME, '', {
+        secure: !isRunningLocally,
+        httpOnly: true,
+        path: '/',
+        maxAge: new Date(0),
+    });
 };
 
 const generateLogoutCookie = () => {
-    return cookie.serialize(NETLIFY_COOKIE_NAME, 'Logout Cookie', {
+    return cookie.serialize(NETLIFY_COOKIE_NAME, '', {
         secure: !isRunningLocally,
         path: '/',
         maxAge: new Date(0),
