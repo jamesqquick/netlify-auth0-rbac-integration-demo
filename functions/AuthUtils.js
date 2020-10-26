@@ -1,5 +1,5 @@
 const { Issuer, generators } = require('openid-client');
-const jose = require('jose');
+const { JWT } = require('jose');
 const cookie = require('cookie');
 
 const NETLIFY_JWT_EXPIRATION_SECONDS = 14 * 24 * 3600;
@@ -34,7 +34,7 @@ const generateNetlifyJWT = async (tokenData) => {
             },
         },
     };
-    return await jose.sign(tokenPayload, process.env.TOKEN_SECRET, {
+    return await JWT.sign(tokenPayload, process.env.TOKEN_SECRET, {
         algorithm: 'HS256',
     });
 };
