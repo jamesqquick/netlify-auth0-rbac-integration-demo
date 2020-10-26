@@ -88,18 +88,6 @@ const generateNetlifyCookieFromAuth0Token = async (tokenData) => {
     });
 };
 
-const getCallbackParams = (openIDClient, event) => {
-    /* NOTE: method, body, and url are all required for the openIDClient to work with
-    the request*/
-    const req = {
-        method: 'POST',
-        body: event.body,
-        url: event.headers.host,
-    };
-    //callbackParams documentation - https://github.com/panva/node-openid-client/tree/master/docs#clientcallbackparamsinput
-    return openIDClient.callbackParams(req);
-};
-
 const generateAuth0LogoutUrl = () => {
     const auth0DomainLogout = `https://${process.env.AUTH0_DOMAIN}/v2/logout`;
     const urlReturnTo = `returnTo=${encodeURIComponent(process.env.URL)}`;
@@ -142,7 +130,15 @@ const handleCallback = async (event) => {
     ];
     const { nonce, state } = JSON.parse(loginCookie);
 
-    const params = getCallbackParams(openIDClient, event);
+    /* NOTE: method, body, and url are all required for the openIDClient to work with
+    the request*/
+    const req = {
+        method: 'POST',
+        body: event.body,
+        url: event.headers.host,
+    };
+    //callbackParams documentation - https://github.com/panva/node-openid-client/tree/master/docs#clientcallbackparamsinput
+    const params = openIDClient.callbackParams(req);
 
     //callback docs - https://github.com/panva/node-openid-client/tree/master/docs#clientcallbackredirecturi-parameters-checks-extras
     const tokenSet = await openIDClient.callback(
@@ -154,7 +150,7 @@ const handleCallback = async (event) => {
         }
     );
 
-    const decodedClaims = tokenset.claims();
+    const decodedClaims = tokenSet.claims();
     const netlifyCookie = await generateNetlifyCookieFromAuth0Token(
         decodedClaims
     );
