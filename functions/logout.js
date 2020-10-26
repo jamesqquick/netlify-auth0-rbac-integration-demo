@@ -12,7 +12,6 @@ exports.handler = async (event, context) => {
                 Location: '/',
                 'Cache-Control': 'no-cache',
             },
-            body: JSON.stringify({ msg: `Logout failed` }),
         };
     }
 };

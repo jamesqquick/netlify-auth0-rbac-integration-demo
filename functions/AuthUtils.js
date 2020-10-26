@@ -107,15 +107,13 @@ const handleLogin = async (event) => {
     }
     const openIDClient = await getOpenIDClient();
     const referer = event.headers.referer;
-    const encodedStateStr = generateEncodedStateString(referer);
-    const nonce = generators.nonce();
 
     //authorizationUrl docs - https://github.com/panva/node-openid-client/tree/master/docs#clientauthorizationurlparameters
     const authRedirectURL = openIDClient.authorizationUrl({
         scope: 'openid email profile',
         response_mode: 'form_post',
-        nonce,
-        state: encodedStateStr,
+        nonce: generators.nonce(),
+        state: generateEncodedStateString(referer),
     });
     return {
         statusCode: 302,
