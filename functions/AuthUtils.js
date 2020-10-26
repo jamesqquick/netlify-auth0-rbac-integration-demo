@@ -1,5 +1,5 @@
 const { Issuer, generators } = require('openid-client');
-const jwt = require('jsonwebtoken');
+const jose = require('jose');
 const cookie = require('cookie');
 
 const NETLIFY_JWT_EXPIRATION_SECONDS = 14 * 24 * 3600;
@@ -22,7 +22,7 @@ const generateNetlifyJWT = async (tokenData) => {
     const exp = Math.floor(iat + NETLIFY_JWT_EXPIRATION_SECONDS);
     //copy over appropriate properties from the original token data
     //Refer to Netlify Documentation for token formatting - https://docs.netlify.com/visitor-access/role-based-access-control/#external-providers
-    const netlifyTokenData = {
+    const tokenPayload = {
         exp,
         iat,
         updated_at: iat,
@@ -34,7 +34,9 @@ const generateNetlifyJWT = async (tokenData) => {
             },
         },
     };
-    return await jwt.sign(netlifyTokenData, process.env.TOKEN_SECRET);
+    return await jose.sign(tokenPayload, process.env.TOKEN_SECRET, {
+        algorithm: 'HS256',
+    });
 };
 
 const generateAuth0LoginCookie = (nonce, encodedStateStr) => {
@@ -102,19 +104,21 @@ const handleLogin = async (event) => {
     const openIDClient = await getOpenIDClient();
     const referer = event.headers.referer;
 
+    const nonce = generators.nonce();
+    const state = generateEncodedStateString(referer);
     //authorizationUrl docs - https://github.com/panva/node-openid-client/tree/master/docs#clientauthorizationurlparameters
     const authRedirectURL = openIDClient.authorizationUrl({
         scope: 'openid email profile',
         response_mode: 'form_post',
-        nonce: generators.nonce(),
-        state: generateEncodedStateString(referer),
+        nonce,
+        state,
     });
     return {
         statusCode: 302,
         headers: {
             Location: authRedirectURL,
             'Cache-Control': 'no-cache',
-            'Set-Cookie': generateAuth0LoginCookie(nonce, encodedStateStr),
+            'Set-Cookie': generateAuth0LoginCookie(nonce, state),
         },
     };
 };
@@ -150,9 +154,8 @@ const handleCallback = async (event) => {
         }
     );
 
-    const decodedClaims = tokenSet.claims();
     const netlifyCookie = await generateNetlifyCookieFromAuth0Token(
-        decodedClaims
+        tokenSet.claims()
     );
 
     const auth0LoginCookie = generateAuth0LoginResetCookie();
