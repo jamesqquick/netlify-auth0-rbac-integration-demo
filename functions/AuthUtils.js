@@ -2,6 +2,12 @@ const { Issuer, generators } = require('openid-client');
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie');
 
+const NETLIFY_JWT_EXPIRATION_SECONDS = 14 * 24 * 3600;
+
+const isRunningLocally = () => {
+    return process.env.NETLIFY_DEV === 'true';
+};
+
 const getOpenIDClient = async () => {
     const issuer = await Issuer.discover(`https://${process.env.AUTH0_DOMAIN}`);
     return new issuer.Client({
@@ -13,8 +19,7 @@ const getOpenIDClient = async () => {
 
 const generateNetlifyJWT = async (tokenData) => {
     const iat = Math.floor(Date.now() / 1000);
-    const twoWeeksInSeconds = 14 * 24 * 3600;
-    const exp = Math.floor(iat + twoWeeksInSeconds);
+    const exp = Math.floor(iat + NETLIFY_JWT_EXPIRATION_SECONDS);
     //copy over appropriate properties from the original token data
     //Refer to Netlify Documentation for token formatting - https://docs.netlify.com/visitor-access/role-based-access-control/#external-providers
     const netlifyTokenData = {
@@ -35,7 +40,7 @@ const generateNetlifyJWT = async (tokenData) => {
 const generateAuth0LoginCookie = (nonce, encodedStateStr) => {
     const cookieData = { nonce, state: encodedStateStr };
     return cookie.serialize('auth0_login_cookie', JSON.stringify(cookieData), {
-        secure: !process.env.NETLIFY_DEV === 'true',
+        secure: !isRunningLocally(),
         path: '/',
         maxAge: 30 * 60 * 1000,
         httpOnly: true,
@@ -50,7 +55,7 @@ const generateEncodedStateString = (route) => {
 
 const generateAuth0LoginResetCookie = () => {
     return cookie.serialize('auth0_login_cookie', 'Auth0 Login Cookie Reset', {
-        secure: !process.env.NETLIFY_DEV === 'true',
+        secure: !isRunningLocally(),
         httpOnly: true,
         path: '/',
         maxAge: new Date(0),
@@ -59,7 +64,7 @@ const generateAuth0LoginResetCookie = () => {
 
 const generateLogoutCookie = () => {
     return cookie.serialize('nf_jwt', 'Logout Cookie', {
-        secure: !process.env.NETLIFY_DEV === 'true',
+        secure: !isRunningLocally(),
         path: '/',
         maxAge: new Date(0),
         httpOnly: true,
@@ -71,7 +76,7 @@ const generateNetlifyCookieFromAuth0Token = async (tokenData) => {
 
     const twoWeeks = 14 * 24 * 3600000;
     return cookie.serialize('nf_jwt', netlifyToken, {
-        secure: !process.env.NETLIFY_DEV === 'true',
+        secure: !isRunningLocally(),
         path: '/',
         maxAge: twoWeeks,
     });
