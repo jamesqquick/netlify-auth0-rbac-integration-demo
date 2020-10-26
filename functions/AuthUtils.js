@@ -3,10 +3,10 @@ const jwt = require('jsonwebtoken');
 const cookie = require('cookie');
 
 const NETLIFY_JWT_EXPIRATION_SECONDS = 14 * 24 * 3600;
-
-const isRunningLocally = () => {
-    return process.env.NETLIFY_DEV === 'true';
-};
+const LOGIN_COOKIE_MAX_AGE = 30 * 60 * 1000;
+const AUTH0_LOGIN_COOKIE_NAME = 'auth0_login_cookie';
+const NETLIFY_COOKIE_NAME = 'nf_jwt';
+const isRunningLocally = process.env.NETLIFY_DEV === 'true';
 
 const getOpenIDClient = async () => {
     const issuer = await Issuer.discover(`https://${process.env.AUTH0_DOMAIN}`);
@@ -39,12 +39,16 @@ const generateNetlifyJWT = async (tokenData) => {
 
 const generateAuth0LoginCookie = (nonce, encodedStateStr) => {
     const cookieData = { nonce, state: encodedStateStr };
-    return cookie.serialize('auth0_login_cookie', JSON.stringify(cookieData), {
-        secure: !isRunningLocally(),
-        path: '/',
-        maxAge: 30 * 60 * 1000,
-        httpOnly: true,
-    });
+    return cookie.serialize(
+        AUTH0_LOGIN_COOKIE_NAME,
+        JSON.stringify(cookieData),
+        {
+            secure: !isRunningLocally,
+            path: '/',
+            maxAge: LOGIN_COOKIE_MAX_AGE,
+            httpOnly: true,
+        }
+    );
 };
 
 const generateEncodedStateString = (route) => {
@@ -54,17 +58,21 @@ const generateEncodedStateString = (route) => {
 };
 
 const generateAuth0LoginResetCookie = () => {
-    return cookie.serialize('auth0_login_cookie', 'Auth0 Login Cookie Reset', {
-        secure: !isRunningLocally(),
-        httpOnly: true,
-        path: '/',
-        maxAge: new Date(0),
-    });
+    return cookie.serialize(
+        AUTH0_LOGIN_COOKIE_NAME,
+        'Auth0 Login Cookie Reset',
+        {
+            secure: !isRunningLocally,
+            httpOnly: true,
+            path: '/',
+            maxAge: new Date(0),
+        }
+    );
 };
 
 const generateLogoutCookie = () => {
-    return cookie.serialize('nf_jwt', 'Logout Cookie', {
-        secure: !isRunningLocally(),
+    return cookie.serialize(NETLIFY_COOKIE_NAME, 'Logout Cookie', {
+        secure: !isRunningLocally,
         path: '/',
         maxAge: new Date(0),
         httpOnly: true,
@@ -73,12 +81,10 @@ const generateLogoutCookie = () => {
 
 const generateNetlifyCookieFromAuth0Token = async (tokenData) => {
     const netlifyToken = await generateNetlifyJWT(tokenData);
-
-    const twoWeeks = 14 * 24 * 3600000;
-    return cookie.serialize('nf_jwt', netlifyToken, {
-        secure: !isRunningLocally(),
+    return cookie.serialize(NETLIFY_COOKIE_NAME, netlifyToken, {
+        secure: !isRunningLocally,
         path: '/',
-        maxAge: twoWeeks,
+        maxAge: NETLIFY_JWT_EXPIRATION_SECONDS,
     });
 };
 
@@ -131,9 +137,9 @@ const handleCallback = async (event) => {
     }
     const openIDClient = await getOpenIDClient();
 
-    const { auth0_login_cookie: loginCookie } = cookie.parse(
-        event.headers.cookie
-    );
+    const loginCookie = cookie.parse(event.headers.cookie)[
+        AUTH0_LOGIN_COOKIE_NAME
+    ];
     const { nonce, state } = JSON.parse(loginCookie);
 
     const params = getCallbackParams(openIDClient, event);
@@ -147,10 +153,10 @@ const handleCallback = async (event) => {
             state,
         }
     );
-    const { id_token } = tokenSet;
-    const decodedToken = jwt.decode(id_token);
+
+    const decodedClaims = tokenset.claims();
     const netlifyCookie = await generateNetlifyCookieFromAuth0Token(
-        decodedToken
+        decodedClaims
     );
 
     const auth0LoginCookie = generateAuth0LoginResetCookie();
