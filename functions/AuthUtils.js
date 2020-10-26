@@ -1,5 +1,4 @@
-const { Issuer } = require('openid-client');
-const { generators } = require('openid-client');
+const { Issuer, generators } = require('openid-client');
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie');
 
