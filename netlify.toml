@@ -2,3 +2,5 @@
     functions = "functions"
     publish = "public/"
     command = "npm run start"
+[dev]
+  jwtSecret = "test"
