@@ -37,7 +37,7 @@ const generateNetlifyJWT = async (tokenData) => {
     return await JWT.sign(tokenPayload, process.env.TOKEN_SECRET, {
         algorithm: 'HS256',
         header: {
-            type: 'JWT',
+            typ: 'JWT',
         },
     });
 };
