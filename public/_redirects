@@ -1,3 +1,2 @@
 /admin/* 200! Role=admin
 /guest/* 200! Role=guest
-/admin/* /.netlify/functions/login 401!
