@@ -24,21 +24,25 @@
             <p class="subtitle">
                 Let's integrate Auth0 with Netlify. Logging in for the first
                 time will give a <strong>"guest"</strong> role and give you
-                access to the secret guest page!
+                access to the secret guest page! To get a role of
+                <strong>"admin"</strong> and access the secret
+                <strong>admin</strong> page, an admin will need to assign the
+                role to you.
             </p>
-            <p>
-                To get a role of <strong>"admin"</strong> and access the secret
-                admin page, an admin will need to assign the role to you.
-            </p>
-            <a href="/.netlify/functions/login" class="btn hidden" id="loginBtn"
-                >Login</a
-            >
-            <a href="/guest/secret" class="btn hidden" id="secretGuestBtn"
-                >View the <strong>Guest</strong> Secret Page</a
-            >
-            <a href="/admin/secret" class="btn hidden" id="secretAdminBtn"
-                >View the <strong>Admin</strong> Secret Page</a
-            >
+            <div class="flex-container">
+                <a
+                    href="/.netlify/functions/login"
+                    class="btn hidden"
+                    id="loginBtn"
+                    >Login</a
+                >
+                <a href="/guest/secret" class="btn hidden" id="secretGuestBtn"
+                    >View the <strong>Guest</strong> Secret Page</a
+                >
+                <a href="/admin/secret" class="btn hidden" id="secretAdminBtn"
+                    >View the <strong>Admin</strong> Secret Page</a
+                >
+            </div>
         </div>
         <script src="app.js"></script>
     </body>

@@ -17,6 +17,7 @@ body {
 
 .title {
     margin-bottom: 0px;
+    text-align: center;
 }
 
 .subtitle {
@@ -29,6 +30,7 @@ body {
     background-color: var(--blue);
     color: white;
     text-decoration: none;
+    display: inline-block;
 }
 
 .nav-link {
@@ -63,4 +65,23 @@ nav {
 }
 .blue-container > * {
     margin: 0;
+}
+
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.center {
+    text-align: center;
+}
+
+@media (max-width: 786px) {
+    .flex-container {
+        flex-direction: column;
+    }
+
+    .flex-container > * {
+        margin-bottom: 20px;
+    }
 }
